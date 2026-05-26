@@ -1,0 +1,16 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userOSSCache
+*.sln.docstates
+
+# Logs
+log.txt
+.vs/
+.idea/
+.vscode/

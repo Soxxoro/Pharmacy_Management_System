@@ -1,0 +1,675 @@
+================================================================================
+PART 1: SQL SCRIPTS & DATABASE SCHEMA
+================================================================================
+
+--- db_setup.sql ---
+CREATE DATABASE Pharmacy_Management;
+GO
+
+USE Pharmacy_Management;
+GO
+
+CREATE TABLE Medicine (
+    Medicine_Id_PK INT PRIMARY KEY IDENTITY(1,1),
+    Medicine_Name VARCHAR(100),
+    Medicine_Dosage VARCHAR(50),
+    Medicine_Price DECIMAL(10,2)
+);
+GO
+
+INSERT INTO Medicine (Medicine_Name, Medicine_Dosage, Medicine_Price) 
+VALUES ('Paracetamol', '500mg', 5.50);
+INSERT INTO Medicine (Medicine_Name, Medicine_Dosage, Medicine_Price) 
+VALUES ('Ibuprofen', '400mg', 12.00);
+GO
+
+
+================================================================================
+PART 2: CONFIGURATION & SETTINGS
+================================================================================
+
+--- appsettings.json ---
+{
+  "Serilog": {
+    "Using": [ "Serilog.Sinks.File" ],
+    "WriteTo": [
+      {
+        "Name": "File",
+        "Args": {
+          "path": "log.txt"
+        }
+      }
+    ]
+  }
+}
+
+
+================================================================================
+PART 3: C# SOURCE CODE
+================================================================================
+
+--- PharmacyException.cs ---
+using System;
+
+namespace PharmacyException
+{
+    public class MedicineException : Exception
+    {
+        public MedicineException(string message) : base(message)
+        {
+        }
+    }
+}
+
+
+--- MedicineVo.cs ---
+namespace PharmacyManagement.Vo
+{
+    public class MedicineVo
+    {
+        public int Medicine_Id_PK { get; set; }
+        public string Medicine_Name { get; set; } = "";
+        public string Medicine_Dosage { get; set; } = "";
+        public decimal Medicine_Price { get; set; }
+    }
+}
+
+
+--- ResponseObject.cs ---
+namespace PharmacyManagement.Vo
+{
+    public class ResponseObject
+    {
+        public bool Flag { get; set; }
+        public string Message { get; set; } = "";
+        public object Data { get; set; }
+    }
+}
+
+
+--- IMedicineDao.cs ---
+using System.Collections.Generic;
+using PharmacyManagement.Vo;
+
+namespace PharmacyManagement.Dao
+{
+    public interface IMedicineDao
+    {
+        bool AddMedicine(MedicineVo med);
+        MedicineVo FindById(int id);
+        List<MedicineVo> GetAllMedicines();
+        bool UpdateMedicine(MedicineVo med);
+    }
+}
+
+
+--- MedicineDao.cs ---
+using System;
+using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
+using PharmacyManagement.Vo;
+using Serilog;
+
+namespace PharmacyManagement.Dao
+{
+    public class MedicineDao : IMedicineDao
+    {
+        private string connString;
+
+        public MedicineDao(string connectionString)
+        {
+            connString = connectionString;
+        }
+
+        public bool AddMedicine(MedicineVo med)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    string sql = "INSERT INTO Medicine (Medicine_Name, Medicine_Dosage, Medicine_Price) VALUES (@Name, @Dosage, @Price)";
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Name", med.Medicine_Name);
+                        cmd.Parameters.AddWithValue("@Dosage", med.Medicine_Dosage);
+                        cmd.Parameters.AddWithValue("@Price", med.Medicine_Price);
+
+                        conn.Open();
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        conn.Close();
+
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("DAO Error - AddMedicine failed: " + ex.Message);
+                throw;
+            }
+        }
+
+        public MedicineVo FindById(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    string sql = "SELECT Medicine_Id_PK, Medicine_Name, Medicine_Dosage, Medicine_Price FROM Medicine WHERE Medicine_Id_PK = @Id";
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+
+                        conn.Open();
+                        using (SqlDataReader rdr = cmd.ExecuteReader())
+                        {
+                            if (rdr.Read())
+                            {
+                                MedicineVo med = new MedicineVo();
+                                med.Medicine_Id_PK = Convert.ToInt32(rdr["Medicine_Id_PK"]);
+                                med.Medicine_Name = Convert.ToString(rdr["Medicine_Name"]);
+                                med.Medicine_Dosage = Convert.ToString(rdr["Medicine_Dosage"]);
+                                med.Medicine_Price = Convert.ToDecimal(rdr["Medicine_Price"]);
+                                return med;
+                            }
+                        }
+                        conn.Close();
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("DAO Error - FindById failed for ID " + id + ": " + ex.Message);
+                throw;
+            }
+        }
+
+        public List<MedicineVo> GetAllMedicines()
+        {
+            try
+            {
+                List<MedicineVo> list = new List<MedicineVo>();
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    string sql = "SELECT Medicine_Id_PK, Medicine_Name, Medicine_Dosage, Medicine_Price FROM Medicine";
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        conn.Open();
+                        using (SqlDataReader rdr = cmd.ExecuteReader())
+                        {
+                            while (rdr.Read())
+                            {
+                                MedicineVo med = new MedicineVo();
+                                med.Medicine_Id_PK = Convert.ToInt32(rdr["Medicine_Id_PK"]);
+                                med.Medicine_Name = Convert.ToString(rdr["Medicine_Name"]);
+                                med.Medicine_Dosage = Convert.ToString(rdr["Medicine_Dosage"]);
+                                med.Medicine_Price = Convert.ToDecimal(rdr["Medicine_Price"]);
+                                list.Add(med);
+                            }
+                        }
+                        conn.Close();
+                    }
+                }
+                return list;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("DAO Error - GetAllMedicines failed: " + ex.Message);
+                throw;
+            }
+        }
+
+        public bool UpdateMedicine(MedicineVo med)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    string sql = "UPDATE Medicine SET Medicine_Name = @Name, Medicine_Dosage = @Dosage, Medicine_Price = @Price WHERE Medicine_Id_PK = @Id";
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", med.Medicine_Id_PK);
+                        cmd.Parameters.AddWithValue("@Name", med.Medicine_Name);
+                        cmd.Parameters.AddWithValue("@Dosage", med.Medicine_Dosage);
+                        cmd.Parameters.AddWithValue("@Price", med.Medicine_Price);
+
+                        conn.Open();
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        conn.Close();
+
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("DAO Error - UpdateMedicine failed for ID " + med.Medicine_Id_PK + ": " + ex.Message);
+                throw;
+            }
+        }
+    }
+}
+
+
+--- MedicineBo.cs ---
+using System.Collections.Generic;
+using PharmacyManagement.Vo;
+using PharmacyManagement.Dao;
+using PharmacyException;
+
+namespace PharmacyManagement.Bo
+{
+    public class MedicineBo
+    {
+        private IMedicineDao dao;
+
+        public MedicineBo(IMedicineDao medicineDao)
+        {
+            dao = medicineDao;
+        }
+
+        public bool AddMedicine(MedicineVo med)
+        {
+            if (string.IsNullOrEmpty(med.Medicine_Name))
+            {
+                throw new MedicineException("Medicine Name cannot be empty.");
+            }
+            if (string.IsNullOrEmpty(med.Medicine_Dosage))
+            {
+                throw new MedicineException("Medicine Dosage cannot be empty.");
+            }
+            if (med.Medicine_Price < 0)
+            {
+                throw new MedicineException("Medicine Price cannot be negative.");
+            }
+
+            return dao.AddMedicine(med);
+        }
+
+        public MedicineVo FindById(int id)
+        {
+            if (id <= 0)
+            {
+                throw new MedicineException("Medicine ID must be greater than zero.");
+            }
+
+            return dao.FindById(id);
+        }
+
+        public List<MedicineVo> GetAllMedicines()
+        {
+            return dao.GetAllMedicines();
+        }
+
+        public bool UpdateMedicine(MedicineVo med)
+        {
+            if (med.Medicine_Id_PK <= 0)
+            {
+                throw new MedicineException("Invalid Medicine ID for update.");
+            }
+            if (string.IsNullOrEmpty(med.Medicine_Name))
+            {
+                throw new MedicineException("Medicine Name cannot be empty.");
+            }
+            if (string.IsNullOrEmpty(med.Medicine_Dosage))
+            {
+                throw new MedicineException("Medicine Dosage cannot be empty.");
+            }
+            if (med.Medicine_Price < 0)
+            {
+                throw new MedicineException("Medicine Price cannot be negative.");
+            }
+
+            return dao.UpdateMedicine(med);
+        }
+    }
+}
+
+
+--- IMedicineFacade.cs ---
+using System.Collections.Generic;
+using PharmacyManagement.Vo;
+
+namespace PharmacyManagement.Facade
+{
+    public interface IMedicineFacade
+    {
+        bool AddMedicine(MedicineVo med);
+        MedicineVo FindById(int id);
+        List<MedicineVo> GetAllMedicines();
+        bool UpdateMedicine(MedicineVo med);
+    }
+}
+
+
+--- MedicineFacade.cs ---
+using System.Collections.Generic;
+using PharmacyManagement.Vo;
+using PharmacyManagement.Bo;
+
+namespace PharmacyManagement.Facade
+{
+    public class MedicineFacade : IMedicineFacade
+    {
+        private MedicineBo bo;
+
+        public MedicineFacade(MedicineBo medicineBo)
+        {
+            bo = medicineBo;
+        }
+
+        public bool AddMedicine(MedicineVo med)
+        {
+            return bo.AddMedicine(med);
+        }
+
+        public MedicineVo FindById(int id)
+        {
+            return bo.FindById(id);
+        }
+
+        public List<MedicineVo> GetAllMedicines()
+        {
+            return bo.GetAllMedicines();
+        }
+
+        public bool UpdateMedicine(MedicineVo med)
+        {
+            return bo.UpdateMedicine(med);
+        }
+    }
+}
+
+
+--- IMedicineService.cs ---
+namespace PharmacyManagement.Service
+{
+    public interface IMedicineService
+    {
+        void StartMenu();
+        void AddMedicine();
+        void FindById();
+        void GetAllMedicines();
+        void UpdateMedicine();
+    }
+}
+
+
+--- MedicineService.cs ---
+using System;
+using System.Collections.Generic;
+using PharmacyManagement.Vo;
+using PharmacyManagement.Facade;
+using Serilog;
+using PharmacyException;
+
+namespace PharmacyManagement.Service
+{
+    public class MedicineService : IMedicineService
+    {
+        private IMedicineFacade facade;
+
+        public MedicineService(IMedicineFacade medicineFacade)
+        {
+            facade = medicineFacade;
+        }
+
+        public void StartMenu()
+        {
+            bool keepRunning = true;
+            while (keepRunning)
+            {
+                Console.WriteLine("\n=== Medicine Management System (Console CUI) ===");
+                Console.WriteLine("1. Add Medicine");
+                Console.WriteLine("2. View All Medicines");
+                Console.WriteLine("3. Find Medicine by ID");
+                Console.WriteLine("4. Update Medicine");
+                Console.WriteLine("5. Exit");
+                Console.Write("Enter choice (1-5): ");
+                string choice = Console.ReadLine();
+
+                if (choice == "1")
+                {
+                    AddMedicine();
+                }
+                else if (choice == "2")
+                {
+                    GetAllMedicines();
+                }
+                else if (choice == "3")
+                {
+                    FindById();
+                }
+                else if (choice == "4")
+                {
+                    UpdateMedicine();
+                }
+                else if (choice == "5")
+                {
+                    keepRunning = false;
+                    Console.WriteLine("Exiting program...");
+                }
+                else
+                {
+                    Console.WriteLine("Invalid option. Please try again.");
+                }
+            }
+        }
+
+        public void AddMedicine()
+        {
+            Console.WriteLine("\n--- Add Medicine ---");
+            Console.Write("Enter Medicine Name: ");
+            string name = Console.ReadLine();
+
+            Console.Write("Enter Dosage (e.g., 500mg): ");
+            string dosage = Console.ReadLine();
+
+            Console.Write("Enter Price: ");
+            string priceInput = Console.ReadLine();
+
+            Log.Information("Service Input - AddMedicine: Name = {Name}, Dosage = {Dosage}, PriceStr = {PriceStr}", 
+                name, dosage, priceInput);
+
+            try
+            {
+                decimal price = 0;
+                if (!decimal.TryParse(priceInput, out price))
+                {
+                    throw new MedicineException("Invalid price format. Price must be a decimal number.");
+                }
+
+                MedicineVo medicine = new MedicineVo();
+                medicine.Medicine_Name = name;
+                medicine.Medicine_Dosage = dosage;
+                medicine.Medicine_Price = price;
+
+                bool result = facade.AddMedicine(medicine);
+
+                if (result)
+                {
+                    Console.WriteLine("Success: Medicine saved successfully.");
+                    Log.Information("Service Output - AddMedicine: Success");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Failed to save medicine.");
+                    Log.Information("Service Output - AddMedicine: Failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Log.Error("Service Exception - AddMedicine failed: {ErrorMessage}", ex.Message);
+            }
+        }
+
+        public void FindById()
+        {
+            Console.WriteLine("\n--- Find Medicine by ID ---");
+            Console.Write("Enter Medicine ID: ");
+            string idInput = Console.ReadLine();
+
+            Log.Information("Service Input - FindById: IDStr = {IdStr}", idInput);
+
+            try
+            {
+                int id = 0;
+                if (!int.TryParse(idInput, out id))
+                {
+                    throw new MedicineException("Invalid ID format. ID must be an integer.");
+                }
+
+                MedicineVo med = facade.FindById(id);
+
+                if (med != null)
+                {
+                    Console.WriteLine("\nMedicine Details Found:");
+                    Console.WriteLine("ID: " + med.Medicine_Id_PK);
+                    Console.WriteLine("Name: " + med.Medicine_Name);
+                    Console.WriteLine("Dosage: " + med.Medicine_Dosage);
+                    Console.WriteLine("Price: " + med.Medicine_Price);
+                    Log.Information("Service Output - FindById: Found ID = {Id}", id);
+                }
+                else
+                {
+                    Console.WriteLine("Error: No medicine found with ID: " + id);
+                    Log.Information("Service Output - FindById: Not Found ID = {Id}", id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Log.Error("Service Exception - FindById failed: {ErrorMessage}", ex.Message);
+            }
+        }
+
+        public void GetAllMedicines()
+        {
+            Console.WriteLine("\n--- View All Medicines ---");
+
+            Log.Information("Service Input - GetAllMedicines: Request received");
+
+            try
+            {
+                List<MedicineVo> list = facade.GetAllMedicines();
+
+                if (list == null || list.Count == 0)
+                {
+                    Console.WriteLine("No medicines found in the system database.");
+                    Log.Information("Service Output - GetAllMedicines: No records");
+                    return;
+                }
+
+                Console.WriteLine("ID\t|\tName\t|\tDosage\t|\tPrice");
+                Console.WriteLine("-------------------------------------------------------------");
+                foreach (MedicineVo med in list)
+                {
+                    Console.WriteLine(med.Medicine_Id_PK + "\t|\t" + med.Medicine_Name + "\t|\t" + med.Medicine_Dosage + "\t|\t" + med.Medicine_Price);
+                }
+
+                Log.Information("Service Output - GetAllMedicines: Success, Count = {Count}", list.Count);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Log.Error("Service Exception - GetAllMedicines failed: {ErrorMessage}", ex.Message);
+            }
+        }
+
+        public void UpdateMedicine()
+        {
+            Console.WriteLine("\n--- Update Medicine ---");
+            Console.Write("Enter Medicine ID to Update: ");
+            string idInput = Console.ReadLine();
+
+            Console.Write("Enter New Name: ");
+            string name = Console.ReadLine();
+
+            Console.Write("Enter New Dosage (e.g., 500mg): ");
+            string dosage = Console.ReadLine();
+
+            Console.Write("Enter New Price: ");
+            string priceInput = Console.ReadLine();
+
+            Log.Information("Service Input - UpdateMedicine: IDStr = {IdStr}, Name = {Name}, Dosage = {Dosage}, PriceStr = {PriceStr}", 
+                idInput, name, dosage, priceInput);
+
+            try
+            {
+                int id = 0;
+                if (!int.TryParse(idInput, out id))
+                {
+                    throw new MedicineException("Invalid ID format. ID must be an integer.");
+                }
+
+                decimal price = 0;
+                if (!decimal.TryParse(priceInput, out price))
+                {
+                    throw new MedicineException("Invalid price format. Price must be a decimal number.");
+                }
+
+                MedicineVo medicine = new MedicineVo();
+                medicine.Medicine_Id_PK = id;
+                medicine.Medicine_Name = name;
+                medicine.Medicine_Dosage = dosage;
+                medicine.Medicine_Price = price;
+
+                bool result = facade.UpdateMedicine(medicine);
+
+                if (result)
+                {
+                    Console.WriteLine("Success: Medicine details updated successfully.");
+                    Log.Information("Service Output - UpdateMedicine: Success");
+                }
+                else
+                {
+                    Console.WriteLine("Error: Failed to update medicine details (ID may not exist).");
+                    Log.Information("Service Output - UpdateMedicine: Failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Log.Error("Service Exception - UpdateMedicine failed: {ErrorMessage}", ex.Message);
+            }
+        }
+    }
+}
+
+
+--- Program.cs ---
+using Serilog;
+using PharmacyManagement.Dao;
+using PharmacyManagement.Bo;
+using PharmacyManagement.Facade;
+using PharmacyManagement.Service;
+
+namespace PharmacyManagement.Main
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.File("log.txt")
+                .CreateLogger();
+
+            Log.Information("Application Started");
+
+            string connectionString = "Server=.\\SQLEXPRESS;Database=Pharmacy_Management;Trusted_Connection=True;TrustServerCertificate=True;";
+            
+            IMedicineDao dao = new MedicineDao(connectionString);
+            MedicineBo bo = new MedicineBo(dao);
+            IMedicineFacade facade = new MedicineFacade(bo);
+            IMedicineService service = new MedicineService(facade);
+
+            service.StartMenu();
+
+            Log.Information("Application Stopped");
+            Log.CloseAndFlush();
+        }
+    }
+}
