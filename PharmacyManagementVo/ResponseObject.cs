@@ -1,4 +1,4 @@
-namespace PharmacyManagement.Vo
+namespace PharmacyManagementVo
 {
     public class ResponseObject
     {

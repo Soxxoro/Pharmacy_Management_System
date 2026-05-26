@@ -63,7 +63,7 @@ namespace PharmacyException
 
 
 --- MedicineVo.cs ---
-namespace PharmacyManagement.Vo
+namespace PharmacyManagementVo
 {
     public class MedicineVo
     {
@@ -76,7 +76,7 @@ namespace PharmacyManagement.Vo
 
 
 --- ResponseObject.cs ---
-namespace PharmacyManagement.Vo
+namespace PharmacyManagementVo
 {
     public class ResponseObject
     {
@@ -89,7 +89,7 @@ namespace PharmacyManagement.Vo
 
 --- IMedicineDao.cs ---
 using System.Collections.Generic;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 
 namespace PharmacyManagement.Dao
 {
@@ -107,7 +107,7 @@ namespace PharmacyManagement.Dao
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 using Serilog;
 
 namespace PharmacyManagement.Dao
@@ -254,7 +254,7 @@ namespace PharmacyManagement.Dao
 
 --- MedicineBo.cs ---
 using System.Collections.Generic;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 using PharmacyManagement.Dao;
 using PharmacyException;
 
@@ -329,7 +329,7 @@ namespace PharmacyManagement.Bo
 
 --- IMedicineFacade.cs ---
 using System.Collections.Generic;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 
 namespace PharmacyManagement.Facade
 {
@@ -345,7 +345,7 @@ namespace PharmacyManagement.Facade
 
 --- MedicineFacade.cs ---
 using System.Collections.Generic;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 using PharmacyManagement.Bo;
 
 namespace PharmacyManagement.Facade
@@ -383,7 +383,7 @@ namespace PharmacyManagement.Facade
 
 
 --- IMedicineService.cs ---
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 
 namespace PharmacyManagement.Service
 {
@@ -401,7 +401,7 @@ namespace PharmacyManagement.Service
 --- MedicineService.cs ---
 using System;
 using System.Collections.Generic;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 using PharmacyManagement.Facade;
 using Serilog;
 using PharmacyException;

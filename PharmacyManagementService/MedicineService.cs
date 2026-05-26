@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 using PharmacyManagement.Facade;
 using Serilog;
 using PharmacyException;

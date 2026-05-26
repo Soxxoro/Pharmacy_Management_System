@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 using PharmacyManagement.Bo;
 
 namespace PharmacyManagement.Facade

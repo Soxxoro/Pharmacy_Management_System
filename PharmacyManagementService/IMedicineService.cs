@@ -1,4 +1,4 @@
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 
 namespace PharmacyManagement.Service
 {

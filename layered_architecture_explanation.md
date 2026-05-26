@@ -28,7 +28,7 @@ graph TD
 
 ## 2. Layer Definitions & Namespaces
 
-1. **Value Object (VO)** (`PharmacyManagement.Vo`):
+1. **Value Object (VO)** (`PharmacyManagementVo`):
    * Class `MedicineVo.cs`: A class containing public properties (`Medicine_Id_PK`, `Medicine_Name`, `Medicine_Dosage`, `Medicine_Price`) that match the exact columns of the database table. It has no methods or constructors.
 
 2. **Data Access Object (DAO)** (`PharmacyManagement.Dao`):

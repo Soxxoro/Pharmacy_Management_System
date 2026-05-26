@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
-using PharmacyManagement.Vo;
+using PharmacyManagementVo;
 using Serilog;
 
 namespace PharmacyManagement.Dao
