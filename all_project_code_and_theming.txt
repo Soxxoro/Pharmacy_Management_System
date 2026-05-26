@@ -121,30 +121,37 @@ namespace PharmacyManagementDao
             connString = connectionString;
         }
 
+        private MedicineVo MapMedicine(SqlDataReader rdr)
+        {
+            MedicineVo med = new MedicineVo();
+            med.Medicine_Id_PK = Convert.ToInt32(rdr["Medicine_Id_PK"]);
+            med.Medicine_Name = Convert.ToString(rdr["Medicine_Name"]);
+            med.Medicine_Dosage = Convert.ToString(rdr["Medicine_Dosage"]);
+            med.Medicine_Price = Convert.ToDecimal(rdr["Medicine_Price"]);
+            return med;
+        }
+
         public bool AddMedicine(MedicineVo med)
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connString))
-                {
-                    string sql = "INSERT INTO Medicine (Medicine_Name, Medicine_Dosage, Medicine_Price) VALUES (@Name, @Dosage, @Price)";
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@Name", med.Medicine_Name);
-                        cmd.Parameters.AddWithValue("@Dosage", med.Medicine_Dosage);
-                        cmd.Parameters.AddWithValue("@Price", med.Medicine_Price);
+                SqlConnection conn = new SqlConnection(connString);
+                string sql = "INSERT INTO Medicine (Medicine_Name, Medicine_Dosage, Medicine_Price) VALUES (@Name, @Dosage, @Price)";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                
+                cmd.Parameters.AddWithValue("@Name", med.Medicine_Name);
+                cmd.Parameters.AddWithValue("@Dosage", med.Medicine_Dosage);
+                cmd.Parameters.AddWithValue("@Price", med.Medicine_Price);
 
-                        conn.Open();
-                        int rowsAffected = cmd.ExecuteNonQuery();
-                        conn.Close();
+                conn.Open();
+                int rows = cmd.ExecuteNonQuery();
+                conn.Close();
 
-                        return rowsAffected > 0;
-                    }
-                }
+                return rows > 0;
             }
             catch (Exception ex)
             {
-                Log.Error("DAO Error - AddMedicine failed: " + ex.Message);
+                Log.Error("AddMedicine failed: " + ex.Message);
                 throw;
             }
         }
@@ -153,34 +160,25 @@ namespace PharmacyManagementDao
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connString))
-                {
-                    string sql = "SELECT Medicine_Id_PK, Medicine_Name, Medicine_Dosage, Medicine_Price FROM Medicine WHERE Medicine_Id_PK = @Id";
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@Id", id);
+                SqlConnection conn = new SqlConnection(connString);
+                string sql = "SELECT Medicine_Id_PK, Medicine_Name, Medicine_Dosage, Medicine_Price FROM Medicine WHERE Medicine_Id_PK = @Id";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                
+                cmd.Parameters.AddWithValue("@Id", id);
 
-                        conn.Open();
-                        using (SqlDataReader rdr = cmd.ExecuteReader())
-                        {
-                            if (rdr.Read())
-                            {
-                                MedicineVo med = new MedicineVo();
-                                med.Medicine_Id_PK = Convert.ToInt32(rdr["Medicine_Id_PK"]);
-                                med.Medicine_Name = Convert.ToString(rdr["Medicine_Name"]);
-                                med.Medicine_Dosage = Convert.ToString(rdr["Medicine_Dosage"]);
-                                med.Medicine_Price = Convert.ToDecimal(rdr["Medicine_Price"]);
-                                return med;
-                            }
-                        }
-                        conn.Close();
-                    }
+                conn.Open();
+                SqlDataReader rdr = cmd.ExecuteReader();
+                MedicineVo med = null;
+                if (rdr.Read())
+                {
+                    med = MapMedicine(rdr);
                 }
-                return null;
+                conn.Close();
+                return med;
             }
             catch (Exception ex)
             {
-                Log.Error("DAO Error - FindById failed for ID " + id + ": " + ex.Message);
+                Log.Error("FindById failed: " + ex.Message);
                 throw;
             }
         }
@@ -190,32 +188,23 @@ namespace PharmacyManagementDao
             try
             {
                 List<MedicineVo> list = new List<MedicineVo>();
-                using (SqlConnection conn = new SqlConnection(connString))
+                SqlConnection conn = new SqlConnection(connString);
+                string sql = "SELECT Medicine_Id_PK, Medicine_Name, Medicine_Dosage, Medicine_Price FROM Medicine";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+
+                conn.Open();
+                SqlDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
                 {
-                    string sql = "SELECT Medicine_Id_PK, Medicine_Name, Medicine_Dosage, Medicine_Price FROM Medicine";
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        conn.Open();
-                        using (SqlDataReader rdr = cmd.ExecuteReader())
-                        {
-                            while (rdr.Read())
-                            {
-                                MedicineVo med = new MedicineVo();
-                                med.Medicine_Id_PK = Convert.ToInt32(rdr["Medicine_Id_PK"]);
-                                med.Medicine_Name = Convert.ToString(rdr["Medicine_Name"]);
-                                med.Medicine_Dosage = Convert.ToString(rdr["Medicine_Dosage"]);
-                                med.Medicine_Price = Convert.ToDecimal(rdr["Medicine_Price"]);
-                                list.Add(med);
-                            }
-                        }
-                        conn.Close();
-                    }
+                    MedicineVo med = MapMedicine(rdr);
+                    list.Add(med);
                 }
+                conn.Close();
                 return list;
             }
             catch (Exception ex)
             {
-                Log.Error("DAO Error - GetAllMedicines failed: " + ex.Message);
+                Log.Error("GetAllMedicines failed: " + ex.Message);
                 throw;
             }
         }
@@ -224,27 +213,24 @@ namespace PharmacyManagementDao
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connString))
-                {
-                    string sql = "UPDATE Medicine SET Medicine_Name = @Name, Medicine_Dosage = @Dosage, Medicine_Price = @Price WHERE Medicine_Id_PK = @Id";
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@Id", med.Medicine_Id_PK);
-                        cmd.Parameters.AddWithValue("@Name", med.Medicine_Name);
-                        cmd.Parameters.AddWithValue("@Dosage", med.Medicine_Dosage);
-                        cmd.Parameters.AddWithValue("@Price", med.Medicine_Price);
+                SqlConnection conn = new SqlConnection(connString);
+                string sql = "UPDATE Medicine SET Medicine_Name = @Name, Medicine_Dosage = @Dosage, Medicine_Price = @Price WHERE Medicine_Id_PK = @Id";
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                
+                cmd.Parameters.AddWithValue("@Id", med.Medicine_Id_PK);
+                cmd.Parameters.AddWithValue("@Name", med.Medicine_Name);
+                cmd.Parameters.AddWithValue("@Dosage", med.Medicine_Dosage);
+                cmd.Parameters.AddWithValue("@Price", med.Medicine_Price);
 
-                        conn.Open();
-                        int rowsAffected = cmd.ExecuteNonQuery();
-                        conn.Close();
+                conn.Open();
+                int rows = cmd.ExecuteNonQuery();
+                conn.Close();
 
-                        return rowsAffected > 0;
-                    }
-                }
+                return rows > 0;
             }
             catch (Exception ex)
             {
-                Log.Error("DAO Error - UpdateMedicine failed for ID " + med.Medicine_Id_PK + ": " + ex.Message);
+                Log.Error("UpdateMedicine failed: " + ex.Message);
                 throw;
             }
         }
@@ -404,7 +390,6 @@ using System.Collections.Generic;
 using PharmacyManagementVo;
 using PharmacyManagementFacade;
 using Serilog;
-using PharmacyException;
 
 namespace PharmacyManagementService
 {
@@ -415,6 +400,29 @@ namespace PharmacyManagementService
         public MedicineService(IMedicineFacade facade)
         {
             this.facade = facade;
+        }
+
+        private ResponseObject HandleResponse(bool success, string successMsg, string failMsg)
+        {
+            ResponseObject res = new ResponseObject();
+            res.Flag = success;
+            res.Message = success ? successMsg : failMsg;
+            Console.WriteLine(res.Message);
+            if (success)
+            {
+                Log.Information(res.Message);
+            }
+            return res;
+        }
+
+        private ResponseObject HandleException(Exception ex, string logMessage)
+        {
+            ResponseObject res = new ResponseObject();
+            res.Flag = false;
+            res.Message = ex.Message;
+            Console.WriteLine("Error: " + ex.Message);
+            Log.Error(logMessage + ": " + ex.Message);
+            return res;
         }
 
         public void StartMenu()
@@ -441,8 +449,6 @@ namespace PharmacyManagementService
 
         public ResponseObject AddMedicine()
         {
-            Log.Information("AddMedicine started");
-            ResponseObject res = new ResponseObject();
             try
             {
                 Console.Write("Enter Name: ");
@@ -452,32 +458,22 @@ namespace PharmacyManagementService
                 Console.Write("Enter Price: ");
                 decimal price = Convert.ToDecimal(Console.ReadLine());
 
-                MedicineVo med = new MedicineVo 
-                { 
-                    Medicine_Name = name, 
-                    Medicine_Dosage = dosage, 
-                    Medicine_Price = price 
-                };
+                MedicineVo med = new MedicineVo();
+                med.Medicine_Name = name;
+                med.Medicine_Dosage = dosage;
+                med.Medicine_Price = price;
 
-                res.Flag = facade.AddMedicine(med);
-                res.Message = res.Flag ? "Saved successfully!" : "Failed to save!";
-                Console.WriteLine(res.Message);
+                bool ok = facade.AddMedicine(med);
+                return HandleResponse(ok, "Medicine Added", "Failed to add Medicine");
             }
             catch (Exception ex)
             {
-                res.Flag = false;
-                res.Message = ex.Message;
-                Console.WriteLine("Error: " + ex.Message);
-                Log.Error("AddMedicine failed: " + ex.Message);
+                return HandleException(ex, "AddMedicine failed");
             }
-            Log.Information("AddMedicine finished. Flag: " + res.Flag);
-            return res;
         }
 
         public ResponseObject FindById()
         {
-            Log.Information("FindById started");
-            ResponseObject res = new ResponseObject();
             try
             {
                 Console.Write("Enter ID: ");
@@ -486,66 +482,47 @@ namespace PharmacyManagementService
                 MedicineVo med = facade.FindById(id);
                 if (med != null)
                 {
-                    res.Flag = true;
-                    res.Message = "Found!";
-                    res.Data = med;
-
                     Console.WriteLine("ID: " + med.Medicine_Id_PK);
                     Console.WriteLine("Name: " + med.Medicine_Name);
                     Console.WriteLine("Dosage: " + med.Medicine_Dosage);
                     Console.WriteLine("Price: " + med.Medicine_Price);
+
+                    ResponseObject res = HandleResponse(true, "Medicine Found", "");
+                    res.Data = med;
+                    return res;
                 }
-                else
-                {
-                    res.Flag = false;
-                    res.Message = "Not found!";
-                    Console.WriteLine(res.Message);
-                }
+                return HandleResponse(false, "", "Medicine Not Found");
             }
             catch (Exception ex)
             {
-                res.Flag = false;
-                res.Message = ex.Message;
-                Console.WriteLine("Error: " + ex.Message);
-                Log.Error("FindById failed: " + ex.Message);
+                return HandleException(ex, "FindById failed");
             }
-            Log.Information("FindById finished. Flag: " + res.Flag);
-            return res;
         }
 
         public ResponseObject GetAllMedicines()
         {
-            Log.Information("GetAllMedicines started");
-            ResponseObject res = new ResponseObject();
             try
             {
                 List<MedicineVo> list = facade.GetAllMedicines();
-                res.Flag = true;
-                res.Message = "Loaded!";
-                res.Data = list;
-
                 Console.WriteLine("ID\t|\tName\t|\tDosage\t|\tPrice");
                 Console.WriteLine("---------------------------------------------");
                 foreach (MedicineVo med in list)
                 {
                     Console.WriteLine(med.Medicine_Id_PK + "\t|\t" + med.Medicine_Name + "\t|\t" + med.Medicine_Dosage + "\t|\t" + med.Medicine_Price);
                 }
+
+                ResponseObject res = HandleResponse(true, "Medicines Loaded", "");
+                res.Data = list;
+                return res;
             }
             catch (Exception ex)
             {
-                res.Flag = false;
-                res.Message = ex.Message;
-                Console.WriteLine("Error: " + ex.Message);
-                Log.Error("GetAllMedicines failed: " + ex.Message);
+                return HandleException(ex, "GetAllMedicines failed");
             }
-            Log.Information("GetAllMedicines finished. Flag: " + res.Flag);
-            return res;
         }
 
         public ResponseObject UpdateMedicine()
         {
-            Log.Information("UpdateMedicine started");
-            ResponseObject res = new ResponseObject();
             try
             {
                 Console.Write("Enter ID to update: ");
@@ -557,30 +534,23 @@ namespace PharmacyManagementService
                 Console.Write("Enter New Price: ");
                 decimal price = Convert.ToDecimal(Console.ReadLine());
 
-                MedicineVo med = new MedicineVo 
-                { 
-                    Medicine_Id_PK = id, 
-                    Medicine_Name = name, 
-                    Medicine_Dosage = dosage, 
-                    Medicine_Price = price 
-                };
+                MedicineVo med = new MedicineVo();
+                med.Medicine_Id_PK = id;
+                med.Medicine_Name = name;
+                med.Medicine_Dosage = dosage;
+                med.Medicine_Price = price;
 
-                res.Flag = facade.UpdateMedicine(med);
-                res.Message = res.Flag ? "Updated successfully!" : "Failed to update!";
-                Console.WriteLine(res.Message);
+                bool ok = facade.UpdateMedicine(med);
+                return HandleResponse(ok, "Medicine Updated", "Failed to update Medicine");
             }
             catch (Exception ex)
             {
-                res.Flag = false;
-                res.Message = ex.Message;
-                Console.WriteLine("Error: " + ex.Message);
-                Log.Error("UpdateMedicine failed: " + ex.Message);
+                return HandleException(ex, "UpdateMedicine failed");
             }
-            Log.Information("UpdateMedicine finished. Flag: " + res.Flag);
-            return res;
         }
     }
 }
+
 
 
 --- Program.cs ---

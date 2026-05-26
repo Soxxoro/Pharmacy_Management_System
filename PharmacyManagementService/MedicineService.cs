@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using PharmacyManagementVo;
 using PharmacyManagementFacade;
 using Serilog;
-using PharmacyException;
 
 namespace PharmacyManagementService
 {
@@ -14,6 +13,29 @@ namespace PharmacyManagementService
         public MedicineService(IMedicineFacade facade)
         {
             this.facade = facade;
+        }
+
+        private ResponseObject HandleResponse(bool success, string successMsg, string failMsg)
+        {
+            ResponseObject res = new ResponseObject();
+            res.Flag = success;
+            res.Message = success ? successMsg : failMsg;
+            Console.WriteLine(res.Message);
+            if (success)
+            {
+                Log.Information(res.Message);
+            }
+            return res;
+        }
+
+        private ResponseObject HandleException(Exception ex, string logMessage)
+        {
+            ResponseObject res = new ResponseObject();
+            res.Flag = false;
+            res.Message = ex.Message;
+            Console.WriteLine("Error: " + ex.Message);
+            Log.Error(logMessage + ": " + ex.Message);
+            return res;
         }
 
         public void StartMenu()
@@ -40,8 +62,6 @@ namespace PharmacyManagementService
 
         public ResponseObject AddMedicine()
         {
-            Log.Information("AddMedicine started");
-            ResponseObject res = new ResponseObject();
             try
             {
                 Console.Write("Enter Name: ");
@@ -51,32 +71,22 @@ namespace PharmacyManagementService
                 Console.Write("Enter Price: ");
                 decimal price = Convert.ToDecimal(Console.ReadLine());
 
-                MedicineVo med = new MedicineVo 
-                { 
-                    Medicine_Name = name, 
-                    Medicine_Dosage = dosage, 
-                    Medicine_Price = price 
-                };
+                MedicineVo med = new MedicineVo();
+                med.Medicine_Name = name;
+                med.Medicine_Dosage = dosage;
+                med.Medicine_Price = price;
 
-                res.Flag = facade.AddMedicine(med);
-                res.Message = res.Flag ? "Saved successfully!" : "Failed to save!";
-                Console.WriteLine(res.Message);
+                bool ok = facade.AddMedicine(med);
+                return HandleResponse(ok, "Medicine Added", "Failed to add Medicine");
             }
             catch (Exception ex)
             {
-                res.Flag = false;
-                res.Message = ex.Message;
-                Console.WriteLine("Error: " + ex.Message);
-                Log.Error("AddMedicine failed: " + ex.Message);
+                return HandleException(ex, "AddMedicine failed");
             }
-            Log.Information("AddMedicine finished. Flag: " + res.Flag);
-            return res;
         }
 
         public ResponseObject FindById()
         {
-            Log.Information("FindById started");
-            ResponseObject res = new ResponseObject();
             try
             {
                 Console.Write("Enter ID: ");
@@ -85,66 +95,47 @@ namespace PharmacyManagementService
                 MedicineVo med = facade.FindById(id);
                 if (med != null)
                 {
-                    res.Flag = true;
-                    res.Message = "Found!";
-                    res.Data = med;
-
                     Console.WriteLine("ID: " + med.Medicine_Id_PK);
                     Console.WriteLine("Name: " + med.Medicine_Name);
                     Console.WriteLine("Dosage: " + med.Medicine_Dosage);
                     Console.WriteLine("Price: " + med.Medicine_Price);
+
+                    ResponseObject res = HandleResponse(true, "Medicine Found", "");
+                    res.Data = med;
+                    return res;
                 }
-                else
-                {
-                    res.Flag = false;
-                    res.Message = "Not found!";
-                    Console.WriteLine(res.Message);
-                }
+                return HandleResponse(false, "", "Medicine Not Found");
             }
             catch (Exception ex)
             {
-                res.Flag = false;
-                res.Message = ex.Message;
-                Console.WriteLine("Error: " + ex.Message);
-                Log.Error("FindById failed: " + ex.Message);
+                return HandleException(ex, "FindById failed");
             }
-            Log.Information("FindById finished. Flag: " + res.Flag);
-            return res;
         }
 
         public ResponseObject GetAllMedicines()
         {
-            Log.Information("GetAllMedicines started");
-            ResponseObject res = new ResponseObject();
             try
             {
                 List<MedicineVo> list = facade.GetAllMedicines();
-                res.Flag = true;
-                res.Message = "Loaded!";
-                res.Data = list;
-
                 Console.WriteLine("ID\t|\tName\t|\tDosage\t|\tPrice");
                 Console.WriteLine("---------------------------------------------");
                 foreach (MedicineVo med in list)
                 {
                     Console.WriteLine(med.Medicine_Id_PK + "\t|\t" + med.Medicine_Name + "\t|\t" + med.Medicine_Dosage + "\t|\t" + med.Medicine_Price);
                 }
+
+                ResponseObject res = HandleResponse(true, "Medicines Loaded", "");
+                res.Data = list;
+                return res;
             }
             catch (Exception ex)
             {
-                res.Flag = false;
-                res.Message = ex.Message;
-                Console.WriteLine("Error: " + ex.Message);
-                Log.Error("GetAllMedicines failed: " + ex.Message);
+                return HandleException(ex, "GetAllMedicines failed");
             }
-            Log.Information("GetAllMedicines finished. Flag: " + res.Flag);
-            return res;
         }
 
         public ResponseObject UpdateMedicine()
         {
-            Log.Information("UpdateMedicine started");
-            ResponseObject res = new ResponseObject();
             try
             {
                 Console.Write("Enter ID to update: ");
@@ -156,27 +147,19 @@ namespace PharmacyManagementService
                 Console.Write("Enter New Price: ");
                 decimal price = Convert.ToDecimal(Console.ReadLine());
 
-                MedicineVo med = new MedicineVo 
-                { 
-                    Medicine_Id_PK = id, 
-                    Medicine_Name = name, 
-                    Medicine_Dosage = dosage, 
-                    Medicine_Price = price 
-                };
+                MedicineVo med = new MedicineVo();
+                med.Medicine_Id_PK = id;
+                med.Medicine_Name = name;
+                med.Medicine_Dosage = dosage;
+                med.Medicine_Price = price;
 
-                res.Flag = facade.UpdateMedicine(med);
-                res.Message = res.Flag ? "Updated successfully!" : "Failed to update!";
-                Console.WriteLine(res.Message);
+                bool ok = facade.UpdateMedicine(med);
+                return HandleResponse(ok, "Medicine Updated", "Failed to update Medicine");
             }
             catch (Exception ex)
             {
-                res.Flag = false;
-                res.Message = ex.Message;
-                Console.WriteLine("Error: " + ex.Message);
-                Log.Error("UpdateMedicine failed: " + ex.Message);
+                return HandleException(ex, "UpdateMedicine failed");
             }
-            Log.Information("UpdateMedicine finished. Flag: " + res.Flag);
-            return res;
         }
     }
 }
