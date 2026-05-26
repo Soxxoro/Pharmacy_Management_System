@@ -58,7 +58,7 @@ namespace PharmacyManagement.Service
             }
         }
 
-        public void AddMedicine()
+        public ResponseObject AddMedicine()
         {
             Console.WriteLine("\n--- Add Medicine ---");
             Console.Write("Enter Medicine Name: ");
@@ -72,6 +72,8 @@ namespace PharmacyManagement.Service
 
             Log.Information("Service Input - AddMedicine: Name = {Name}, Dosage = {Dosage}, PriceStr = {PriceStr}", 
                 name, dosage, priceInput);
+
+            ResponseObject response = new ResponseObject();
 
             try
             {
@@ -87,32 +89,39 @@ namespace PharmacyManagement.Service
                 medicine.Medicine_Price = price;
 
                 bool result = facade.AddMedicine(medicine);
-
+                response.Flag = result;
                 if (result)
                 {
-                    Console.WriteLine("Success: Medicine saved successfully.");
-                    Log.Information("Service Output - AddMedicine: Success");
+                    response.Message = "Medicine saved successfully.";
+                    Console.WriteLine("Success: " + response.Message);
                 }
                 else
                 {
-                    Console.WriteLine("Error: Failed to save medicine.");
-                    Log.Information("Service Output - AddMedicine: Failed");
+                    response.Message = "Failed to save medicine.";
+                    Console.WriteLine("Error: " + response.Message);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                response.Flag = false;
+                response.Message = ex.Message;
+                Console.WriteLine("Error: " + response.Message);
                 Log.Error("Service Exception - AddMedicine failed: {ErrorMessage}", ex.Message);
             }
+
+            Log.Information("Service Output - AddMedicine: Flag = {Flag}, Message = {Message}", response.Flag, response.Message);
+            return response;
         }
 
-        public void FindById()
+        public ResponseObject FindById()
         {
             Console.WriteLine("\n--- Find Medicine by ID ---");
             Console.Write("Enter Medicine ID: ");
             string idInput = Console.ReadLine();
 
             Log.Information("Service Input - FindById: IDStr = {IdStr}", idInput);
+
+            ResponseObject response = new ResponseObject();
 
             try
             {
@@ -123,63 +132,81 @@ namespace PharmacyManagement.Service
                 }
 
                 MedicineVo med = facade.FindById(id);
-
                 if (med != null)
                 {
+                    response.Flag = true;
+                    response.Message = "Medicine details found.";
+                    response.Data = med;
+
                     Console.WriteLine("\nMedicine Details Found:");
                     Console.WriteLine("ID: " + med.Medicine_Id_PK);
                     Console.WriteLine("Name: " + med.Medicine_Name);
                     Console.WriteLine("Dosage: " + med.Medicine_Dosage);
                     Console.WriteLine("Price: " + med.Medicine_Price);
-                    Log.Information("Service Output - FindById: Found ID = {Id}", id);
                 }
                 else
                 {
-                    Console.WriteLine("Error: No medicine found with ID: " + id);
-                    Log.Information("Service Output - FindById: Not Found ID = {Id}", id);
+                    response.Flag = false;
+                    response.Message = "No medicine found with ID: " + id;
+                    Console.WriteLine("Error: " + response.Message);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                response.Flag = false;
+                response.Message = ex.Message;
+                Console.WriteLine("Error: " + response.Message);
                 Log.Error("Service Exception - FindById failed: {ErrorMessage}", ex.Message);
             }
+
+            Log.Information("Service Output - FindById: Flag = {Flag}, Message = {Message}", response.Flag, response.Message);
+            return response;
         }
 
-        public void GetAllMedicines()
+        public ResponseObject GetAllMedicines()
         {
             Console.WriteLine("\n--- View All Medicines ---");
 
             Log.Information("Service Input - GetAllMedicines: Request received");
 
+            ResponseObject response = new ResponseObject();
+
             try
             {
                 List<MedicineVo> list = facade.GetAllMedicines();
+                response.Flag = true;
+                response.Message = "All medicines retrieved successfully.";
+                response.Data = list;
 
                 if (list == null || list.Count == 0)
                 {
                     Console.WriteLine("No medicines found in the system database.");
-                    Log.Information("Service Output - GetAllMedicines: No records");
-                    return;
                 }
-
-                Console.WriteLine("ID\t|\tName\t|\tDosage\t|\tPrice");
-                Console.WriteLine("-------------------------------------------------------------");
-                foreach (MedicineVo med in list)
+                else
                 {
-                    Console.WriteLine(med.Medicine_Id_PK + "\t|\t" + med.Medicine_Name + "\t|\t" + med.Medicine_Dosage + "\t|\t" + med.Medicine_Price);
+                    Console.WriteLine("ID\t|\tName\t|\tDosage\t|\tPrice");
+                    Console.WriteLine("-------------------------------------------------------------");
+                    foreach (MedicineVo med in list)
+                    {
+                        Console.WriteLine(med.Medicine_Id_PK + "\t|\t" + med.Medicine_Name + "\t|\t" + med.Medicine_Dosage + "\t|\t" + med.Medicine_Price);
+                    }
                 }
-
-                Log.Information("Service Output - GetAllMedicines: Success, Count = {Count}", list.Count);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                response.Flag = false;
+                response.Message = ex.Message;
+                Console.WriteLine("Error: " + response.Message);
                 Log.Error("Service Exception - GetAllMedicines failed: {ErrorMessage}", ex.Message);
             }
+
+            int count = (response.Data as List<MedicineVo>)?.Count ?? 0;
+            Log.Information("Service Output - GetAllMedicines: Flag = {Flag}, Message = {Message}, Count = {Count}", 
+                response.Flag, response.Message, count);
+            return response;
         }
 
-        public void UpdateMedicine()
+        public ResponseObject UpdateMedicine()
         {
             Console.WriteLine("\n--- Update Medicine ---");
             Console.Write("Enter Medicine ID to Update: ");
@@ -196,6 +223,8 @@ namespace PharmacyManagement.Service
 
             Log.Information("Service Input - UpdateMedicine: IDStr = {IdStr}, Name = {Name}, Dosage = {Dosage}, PriceStr = {PriceStr}", 
                 idInput, name, dosage, priceInput);
+
+            ResponseObject response = new ResponseObject();
 
             try
             {
@@ -218,23 +247,28 @@ namespace PharmacyManagement.Service
                 medicine.Medicine_Price = price;
 
                 bool result = facade.UpdateMedicine(medicine);
-
+                response.Flag = result;
                 if (result)
                 {
-                    Console.WriteLine("Success: Medicine details updated successfully.");
-                    Log.Information("Service Output - UpdateMedicine: Success");
+                    response.Message = "Medicine details updated successfully.";
+                    Console.WriteLine("Success: " + response.Message);
                 }
                 else
                 {
-                    Console.WriteLine("Error: Failed to update medicine details (ID may not exist).");
-                    Log.Information("Service Output - UpdateMedicine: Failed");
+                    response.Message = "Failed to update medicine details (ID may not exist).";
+                    Console.WriteLine("Error: " + response.Message);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                response.Flag = false;
+                response.Message = ex.Message;
+                Console.WriteLine("Error: " + response.Message);
                 Log.Error("Service Exception - UpdateMedicine failed: {ErrorMessage}", ex.Message);
             }
+
+            Log.Information("Service Output - UpdateMedicine: Flag = {Flag}, Message = {Message}", response.Flag, response.Message);
+            return response;
         }
     }
 }

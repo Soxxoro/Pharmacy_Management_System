@@ -1,11 +1,13 @@
+using PharmacyManagement.Vo;
+
 namespace PharmacyManagement.Service
 {
     public interface IMedicineService
     {
         void StartMenu();
-        void AddMedicine();
-        void FindById();
-        void GetAllMedicines();
-        void UpdateMedicine();
+        ResponseObject AddMedicine();
+        ResponseObject FindById();
+        ResponseObject GetAllMedicines();
+        ResponseObject UpdateMedicine();
     }
 }
