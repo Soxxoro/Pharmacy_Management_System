@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 using PharmacyManagementVo;
 using Serilog;
 
-namespace PharmacyManagement.Dao
+namespace PharmacyManagementDao
 {
     public class MedicineDao : IMedicineDao
     {

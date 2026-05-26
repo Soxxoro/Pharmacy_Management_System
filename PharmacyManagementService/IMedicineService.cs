@@ -1,6 +1,6 @@
 using PharmacyManagementVo;
 
-namespace PharmacyManagement.Service
+namespace PharmacyManagementService
 {
     public interface IMedicineService
     {

@@ -1,10 +1,10 @@
 using Serilog;
-using PharmacyManagement.Dao;
-using PharmacyManagement.Bo;
-using PharmacyManagement.Facade;
-using PharmacyManagement.Service;
+using PharmacyManagementDao;
+using PharmacyManagementBo;
+using PharmacyManagementFacade;
+using PharmacyManagementService;
 
-namespace PharmacyManagement.Main
+namespace PharmacyManagementMain
 {
     class Program
     {

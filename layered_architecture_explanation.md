@@ -31,19 +31,19 @@ graph TD
 1. **Value Object (VO)** (`PharmacyManagementVo`):
    * Class `MedicineVo.cs`: A class containing public properties (`Medicine_Id_PK`, `Medicine_Name`, `Medicine_Dosage`, `Medicine_Price`) that match the exact columns of the database table. It has no methods or constructors.
 
-2. **Data Access Object (DAO)** (`PharmacyManagement.Dao`):
+2. **Data Access Object (DAO)** (`PharmacyManagementDao`):
    * Class `MedicineDao.cs`: Contains the interface `IMedicineDao` and the concrete class `MedicineDao`. Executes SQL commands (`INSERT`, `SELECT`) using direct ADO.NET methods. Connections are opened manually via `conn.Open()` and closed via `conn.Close()`.
 
-3. **Business Object (BO)** (`PharmacyManagement.Bo`):
+3. **Business Object (BO)** (`PharmacyManagementBo`):
    * Class `MedicineBo.cs`: Contains the interface `IMedicineBo` and the concrete class `MedicineBo`. Checks the business rules before passing data to the database. Validates that the name and dosage are not empty, and the price is not negative. If validations fail, it throws a custom `MedicineException`.
 
-4. **Facade Layer** (`PharmacyManagement.Facade`):
+4. **Facade Layer** (`PharmacyManagementFacade`):
    * Class `MedicineFacade.cs`: Contains the interface `IMedicineFacade` and the concrete class `MedicineFacade`. Acts as a simplified interface wrapper that passes requests directly to the BO layer.
 
-5. **Service Layer** (`PharmacyManagement.Service`):
+5. **Service Layer** (`PharmacyManagementService`):
    * Class `MedicineService.cs`: Contains the interface `IMedicineService` and the concrete class `MedicineService`. Acts as a bridge between the UI layer and the Facade layer.
 
-6. **Main Program** (`PharmacyManagement.Main`):
+6. **Main Program** (`PharmacyManagementMain`):
    * Class `Program.cs` & `appsettings.json`: Handles the UI menu loop directly inside the `Main` method. It displays the menu options (1. Add Medicine, 2. View Medicine, 3. Exit), reads inputs, shows results, catches exceptions, and logs messages via Serilog.
 
 7. **Exception Layer** (`PharmacyException`):

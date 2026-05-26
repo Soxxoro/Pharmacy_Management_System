@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using PharmacyManagementVo;
 
-namespace PharmacyManagement.Dao
+namespace PharmacyManagementDao
 {
     public interface IMedicineDao
     {

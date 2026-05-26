@@ -91,7 +91,7 @@ namespace PharmacyManagementVo
 using System.Collections.Generic;
 using PharmacyManagementVo;
 
-namespace PharmacyManagement.Dao
+namespace PharmacyManagementDao
 {
     public interface IMedicineDao
     {
@@ -110,7 +110,7 @@ using Microsoft.Data.SqlClient;
 using PharmacyManagementVo;
 using Serilog;
 
-namespace PharmacyManagement.Dao
+namespace PharmacyManagementDao
 {
     public class MedicineDao : IMedicineDao
     {
@@ -255,10 +255,10 @@ namespace PharmacyManagement.Dao
 --- MedicineBo.cs ---
 using System.Collections.Generic;
 using PharmacyManagementVo;
-using PharmacyManagement.Dao;
+using PharmacyManagementDao;
 using PharmacyException;
 
-namespace PharmacyManagement.Bo
+namespace PharmacyManagementBo
 {
     public class MedicineBo
     {
@@ -331,7 +331,7 @@ namespace PharmacyManagement.Bo
 using System.Collections.Generic;
 using PharmacyManagementVo;
 
-namespace PharmacyManagement.Facade
+namespace PharmacyManagementFacade
 {
     public interface IMedicineFacade
     {
@@ -346,9 +346,9 @@ namespace PharmacyManagement.Facade
 --- MedicineFacade.cs ---
 using System.Collections.Generic;
 using PharmacyManagementVo;
-using PharmacyManagement.Bo;
+using PharmacyManagementBo;
 
-namespace PharmacyManagement.Facade
+namespace PharmacyManagementFacade
 {
     public class MedicineFacade : IMedicineFacade
     {
@@ -385,7 +385,7 @@ namespace PharmacyManagement.Facade
 --- IMedicineService.cs ---
 using PharmacyManagementVo;
 
-namespace PharmacyManagement.Service
+namespace PharmacyManagementService
 {
     public interface IMedicineService
     {
@@ -402,11 +402,11 @@ namespace PharmacyManagement.Service
 using System;
 using System.Collections.Generic;
 using PharmacyManagementVo;
-using PharmacyManagement.Facade;
+using PharmacyManagementFacade;
 using Serilog;
 using PharmacyException;
 
-namespace PharmacyManagement.Service
+namespace PharmacyManagementService
 {
     public class MedicineService : IMedicineService
     {
@@ -585,12 +585,12 @@ namespace PharmacyManagement.Service
 
 --- Program.cs ---
 using Serilog;
-using PharmacyManagement.Dao;
-using PharmacyManagement.Bo;
-using PharmacyManagement.Facade;
-using PharmacyManagement.Service;
+using PharmacyManagementDao;
+using PharmacyManagementBo;
+using PharmacyManagementFacade;
+using PharmacyManagementService;
 
-namespace PharmacyManagement.Main
+namespace PharmacyManagementMain
 {
     class Program
     {

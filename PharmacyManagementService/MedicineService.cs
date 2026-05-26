@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using PharmacyManagementVo;
-using PharmacyManagement.Facade;
+using PharmacyManagementFacade;
 using Serilog;
 using PharmacyException;
 
-namespace PharmacyManagement.Service
+namespace PharmacyManagementService
 {
     public class MedicineService : IMedicineService
     {

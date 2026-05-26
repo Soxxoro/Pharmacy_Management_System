@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using PharmacyManagementVo;
-using PharmacyManagement.Bo;
+using PharmacyManagementBo;
 
-namespace PharmacyManagement.Facade
+namespace PharmacyManagementFacade
 {
     public class MedicineFacade : IMedicineFacade
     {

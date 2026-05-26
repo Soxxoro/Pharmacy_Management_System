@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using PharmacyManagementVo;
-using PharmacyManagement.Dao;
+using PharmacyManagementDao;
 using PharmacyException;
 
-namespace PharmacyManagement.Bo
+namespace PharmacyManagementBo
 {
     public class MedicineBo
     {
