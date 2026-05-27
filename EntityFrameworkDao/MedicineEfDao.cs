@@ -29,6 +29,7 @@ namespace EntityFrameworkDao
             return db.Medicines.ToList();
         }
 
+        /*
         // 4. FindAllUsingJoins Method
         public void FindAllUsingJoins()
         {
@@ -65,6 +66,7 @@ namespace EntityFrameworkDao
                 }
             }
         }
+        */
 
         // 6. FilteredDemo Method
         public List<Medicine> FilteredDemo(decimal minPrice)
