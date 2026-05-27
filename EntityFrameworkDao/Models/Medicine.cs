@@ -13,7 +13,7 @@ public partial class Medicine
 
     public decimal? MedicinePrice { get; set; }
 
-    public int? CategoryId { get; set; }
+    public int? UnitIdFk { get; set; }
 
-    public virtual Category Category { get; set; }
+    public virtual Unit UnitIdFkNavigation { get; set; }
 }

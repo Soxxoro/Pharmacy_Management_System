@@ -17,7 +17,8 @@ namespace EntityFrameworkDao
             {
                 MedicineName = "Amoxicillin-Demo",
                 MedicineDosage = "250mg",
-                MedicinePrice = 18.75m
+                MedicinePrice = 18.75m,
+                UnitIdFk = 1
             };
             bool insertOk = dao.Insert(newMed);
             Console.WriteLine("Insert Success: " + insertOk);
@@ -38,12 +39,12 @@ namespace EntityFrameworkDao
             Console.WriteLine("Medicines > 10.00: " + filtered.Count);
 
             // 5. FindAllUsingJoins
-            // Console.WriteLine("\n--- EF Core Join Demo ---");
-            // dao.FindAllUsingJoins();
+            Console.WriteLine("\n--- EF Core Join Demo (Medicine & Unit) ---");
+            dao.FindAllUsingJoins();
 
             // 6. LazyLoadingDemo
-            // Console.WriteLine("\n--- EF Core Lazy Loading Demo ---");
-            // dao.LazyLoadingDemo();
+            Console.WriteLine("\n--- EF Core Lazy Loading Demo (Unit & Medicines) ---");
+            dao.LazyLoadingDemo();
         }
     }
 }

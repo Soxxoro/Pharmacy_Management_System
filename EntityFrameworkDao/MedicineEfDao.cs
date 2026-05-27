@@ -29,50 +29,48 @@ namespace EntityFrameworkDao
             return db.Medicines.ToList();
         }
 
-        /*
-        // 4. FindAllUsingJoins Method
-        public void FindAllUsingJoins()
-        {
-            PharmacyManagementContext db = new PharmacyManagementContext();
-
-            // Simple LINQ Join query
-            var query = from m in db.Medicines
-                        join c in db.Categories on m.CategoryId equals c.CategoryId
-                        select new { m.MedicineName, c.CategoryName };
-
-            foreach (var item in query)
-            {
-                Console.WriteLine(item.MedicineName + " - " + item.CategoryName);
-            }
-        }
-
-        // 5. LazyLoadingDemo (using Explicit Loading to avoid proxy packages)
-        public void LazyLoadingDemo()
-        {
-            PharmacyManagementContext db = new PharmacyManagementContext();
-
-            // Load a category first
-            Category cat = db.Categories.FirstOrDefault();
-            if (cat != null)
-            {
-                Console.WriteLine("Category Loaded: " + cat.CategoryName);
-
-                // Explicitly load the related Medicines on-demand (Lazy Loading equivalent)
-                db.Entry(cat).Collection(c => c.Medicines).Load();
-
-                foreach (var med in cat.Medicines)
-                {
-                    Console.WriteLine(" - " + med.MedicineName);
-                }
-            }
-        }
-        */
-
-        // 6. FilteredDemo Method
+        // 4. FilteredDemo Method
         public List<Medicine> FilteredDemo(decimal minPrice)
         {
             PharmacyManagementContext db = new PharmacyManagementContext();
             return db.Medicines.Where(m => m.MedicinePrice > minPrice).ToList();
+        }
+
+        // 5. FindAllUsingJoins Method
+        public void FindAllUsingJoins()
+        {
+            PharmacyManagementContext db = new PharmacyManagementContext();
+
+            // Simple LINQ Join query between Medicine and Unit
+            var query = from m in db.Medicines
+                        join u in db.Units on m.UnitIdFk equals u.UnitIdPk
+                        select new { m.MedicineName, u.UnitName };
+
+            foreach (var item in query)
+            {
+                Console.WriteLine(item.MedicineName + " - " + item.UnitName);
+            }
+        }
+
+        // 6. LazyLoadingDemo (using Explicit Loading to load related Medicines for a Unit)
+        public void LazyLoadingDemo()
+        {
+            PharmacyManagementContext db = new PharmacyManagementContext();
+
+            // Load a Unit first
+            Unit unit = db.Units.FirstOrDefault();
+            if (unit != null)
+            {
+                Console.WriteLine("Unit Loaded: " + unit.UnitName);
+
+                // Explicitly load the related Medicines on-demand (Lazy Loading equivalent)
+                db.Entry(unit).Collection(u => u.Medicines).Load();
+
+                foreach (var med in unit.Medicines)
+                {
+                    Console.WriteLine(" - " + med.MedicineName);
+                }
+            }
         }
     }
 }

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace EntityFrameworkDao.Models;
 
-public partial class Category
+public partial class Unit
 {
-    public int CategoryId { get; set; }
+    public int UnitIdPk { get; set; }
 
-    public string CategoryName { get; set; }
+    public string UnitName { get; set; }
 
     public virtual ICollection<Medicine> Medicines { get; set; } = new List<Medicine>();
 }
